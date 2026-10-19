@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RICHARD RENTAL VEHICLE SYSTEM </title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page" id="roles">
+    <header class="topbar">
+    </header>
+
+    <section class="role-container" aria-labelledby="page-title">
+
+      <div class="role-selection">
+    <button class="role-card" type="button" data-role="customer">
+  <span class="role-heading">CUSTOMER</span>
+
+  <span class="illustration customer-illustration" aria-hidden="true">
+    <svg class="person-svg" viewBox="0 0 240 200">
+      <circle cx="120" cy="50" r="39"></circle>
+      <path d="M43 177c0-48 29-76 77-76s77 28 77 76c0 7-5 12-12 12H55c-7 0-12-5-12-12z"></path>
+    </svg>
+  </span>
+</button>
+        <div class="separator" aria-hidden="true"></div>
+
+        <button class="role-card" type="button" data-role="admin">
+          <span class="role-heading">ADMIN</span>
+          <span class="illustration admin-illustration" aria-hidden="true">
+            <svg class="person-svg" viewBox="0 0 240 200">
+              <circle cx="120" cy="50" r="39"></circle>
+              <path d="M43 177c0-48 29-76 77-76s77 28 77 76c0 7-5 12-12 12H55c-7 0-12-5-12-12z"></path>
+              <path class="tie" d="M105 105h30l-9 20 10 47-16 17-16-17 10-47z"></path>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </section>
+  </main>
+  
+
+<section id="customerLogin" class="auth-container" hidden>
+  <div class="auth-card">
+    <p class="eyebrow">CUSTOMER PORTAL</p>
+    <h1>Customer Login</h1>
+    <p class="subtitle">Login to your rental account.</p>
+
+    <form id="customerLoginForm">
+      <label for="customerIdentity">Username or Email</label>
+      <input id="customerIdentity" type="text" required>
+
+      <label for="customerLoginPassword">Password</label>
+      <input id="customerLoginPassword" type="password" required>
+
+      <p id="customerLoginMessage" class="message"></p>
+      <button class="primary-button" type="submit">LOGIN</button>
+    </form>
+
+    <p class="auth-switch">
+      Don't have an account?
+      <button type="button" class="text-button"
+        onclick="showAuthScreen('customerSignup')">Create Account</button>
+    </p>
+
+    <button type="button" class="back-button"
+      onclick="showAuthScreen('roles')">← Back</button>
+  </div>
+</section>
+
+
+<section id="customerSignup" class="auth-container" hidden>
+  <div class="auth-card">
+    <p class="eyebrow">JOIN RICHARD RENTAL</p>
+    <h1>Create Account</h1>
+    <p class="subtitle">Register a new customer account.</p>
+
+    <form id="customerSignupForm">
+      <label for="newFullName">Full Name</label>
+      <input id="newFullName" type="text" required>
+
+      <label for="newEmail">Email Address</label>
+      <input id="newEmail" type="email" required>
+
+      <label for="newUsername">Username</label>
+      <input id="newUsername" type="text" minlength="4" required>
+
+      <label for="newPassword">Password</label>
+      <input id="newPassword" type="password" minlength="8" required>
+
+      <label for="confirmPassword">Confirm Password</label>
+      <input id="confirmPassword" type="password" minlength="8" required>
+
+      <p id="signupMessage" class="message" role="status"></p>
+      <button class="primary-button" type="submit">CREATE ACCOUNT</button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account?
+      <button type="button" class="text-button"
+        onclick="showAuthScreen('customerLogin')">Login</button>
+    </p>
+
+    <button type="button" class="back-button"
+      onclick="showAuthScreen('customerLogin')">← Back</button>
+  </div>
+</section>
+
+
+<section id="adminLogin" class="auth-container" hidden>
+  <div class="auth-card">
+    <p class="eyebrow">AUTHORIZED PERSONNEL</p>
+    <h1>Admin Login</h1>
+    <p class="subtitle">Sign in to manage the rental system.</p>
+
+    <form id="adminLoginForm">
+      <label for="adminIdentity">Admin Username</label>
+      <input id="adminIdentity" type="text" required>
+
+      <label for="adminLoginPassword">Password</label>
+      <input id="adminLoginPassword" type="password" required>
+
+      <p id="adminLoginMessage" class="message" role="alert"></p>
+      <button class="primary-button" type="submit">ADMIN LOGIN</button>
+    </form>
+
+    <button type="button" class="back-button"
+      onclick="showAuthScreen('roles')">← Back</button>
+  </div>
+</section>
+
+<!-- SIMPLE DASHBOARDS: ADDITION -->
+<section id="customerDashboard" class="role-container dashboard" hidden>
+  <p class="eyebrow">CUSTOMER ACCOUNT</p>
+  <h1>Welcome, <span id="welcomeCustomer"></span>!</h1>
+  <p class="subtitle">You have successfully logged in.</p>
+  <button class="primary-button" onclick="logoutAccount()">LOGOUT</button>
+</section>
+
+<section id="adminDashboard" class="role-container dashboard" hidden>
+  <p class="eyebrow">ADMINISTRATION</p>
+  <h1>Welcome, Admin!</h1>
+  <p class="subtitle">You have successfully logged in to the admin portal.</p>
+  <p>Registered customers: <strong id="registeredCount">0</strong></p>
+  <button class="primary-button" onclick="logoutAccount()">LOGOUT</button>
+</section>
+
+<script src="script.js"></script>
+
+
+<script id="initialAccountData" type="application/json">
+{
+  "admins": [
+    {
+      "username": "admin",
+      "password": "Admin@123",
+      "role": "admin"
+    }
+  ],
+  "customers": []
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  const CUSTOMER_KEY = "richardRentalCustomers";
+
+  const initialData = JSON.parse(
+    document.getElementById("initialAccountData").textContent
+  );
+
+  function getCustomers() {
+    try {
+      return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCustomers(customers) {
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customers));
+  }
+
+  window.showAuthScreen = function (screenId) {
+    const screenIds = [
+      "roles",
+      "customerLogin",
+      "customerSignup",
+      "adminLogin",
+      "customerDashboard",
+      "adminDashboard"
+    ];
+
+    screenIds.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.hidden = id !== screenId;
+    });
+
+    document.querySelectorAll(".message").forEach(element => {
+      element.textContent = "";
+      element.classList.remove("success", "error");
+    });
+  };
+
+  // Connect to the existing CUSTOMER and ADMIN buttons.
+  document.querySelectorAll(".role-card[data-role]").forEach(button => {
+    button.addEventListener("click", () => {
+      const role = button.dataset.role;
+      showAuthScreen(role === "customer" ? "customerLogin" : "adminLogin");
+    });
+  });
+
+  document.getElementById("customerSignupForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const name = document.getElementById("newFullName").value.trim();
+      const email = document.getElementById("newEmail").value.trim().toLowerCase();
+      const username = document.getElementById("newUsername").value.trim();
+      const password = document.getElementById("newPassword").value;
+      const confirm = document.getElementById("confirmPassword").value;
+      const message = document.getElementById("signupMessage");
+
+      message.className = "message";
+
+      if (password !== confirm) {
+        message.textContent = "Passwords do not match.";
+        message.classList.add("error");
+        return;
+      }
+
+      const customers = getCustomers();
+
+      const exists = customers.some(customer =>
+        customer.email.toLowerCase() === email ||
+        customer.username.toLowerCase() === username.toLowerCase()
+      );
+
+      if (exists) {
+        message.textContent = "Email or username is already registered.";
+        message.classList.add("error");
+        return;
+      }
+
+      customers.push({
+        id: Date.now().toString(),
+        name: name,
+        email: email,
+        username: username,
+        password: password,
+        role: "customer",
+        createdAt: new Date().toISOString()
+      });
+
+      try {
+        saveCustomers(customers);
+        this.reset();
+
+        message.textContent = "Account created! You can now log in.";
+        message.classList.add("success");
+
+        document.getElementById("customerIdentity").value = username;
+
+        setTimeout(() => showAuthScreen("customerLogin"), 1000);
+      } catch {
+        message.textContent = "Unable to save. Check your browser storage.";
+        message.classList.add("error");
+      }
+    });
+
+  document.getElementById("customerLoginForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const identity = document.getElementById("customerIdentity")
+        .value.trim().toLowerCase();
+      const password = document.getElementById("customerLoginPassword").value;
+
+      const customer = getCustomers().find(user =>
+        (user.username.toLowerCase() === identity ||
+         user.email.toLowerCase() === identity) &&
+        user.password === password
+      );
+
+      const message = document.getElementById("customerLoginMessage");
+
+      if (!customer) {
+        message.textContent = "Incorrect username/email or password.";
+        message.classList.add("error");
+        return;
+      }
+
+      document.getElementById("welcomeCustomer").textContent = customer.name;
+      showAuthScreen("customerDashboard");
+    });
+
+  document.getElementById("adminLoginForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      const username = document.getElementById("adminIdentity").value.trim();
+      const password = document.getElementById("adminLoginPassword").value;
+
+      const admin = initialData.admins.find(user =>
+        user.username === username && user.password === password
+      );
+
+      const message = document.getElementById("adminLoginMessage");
+
+      if (!admin) {
+        message.textContent = "Incorrect admin username or password.";
+        message.classList.add("error");
+        return;
+      }
+
+      document.getElementById("registeredCount").textContent =
+        getCustomers().length;
+
+      showAuthScreen("adminDashboard");
+    });
+
+  window.logoutAccount = function () {
+    document.getElementById("customerLoginForm").reset();
+    document.getElementById("adminLoginForm").reset();
+    showAuthScreen("roles");
+  };
+})();
+</script>
+
+</body>
+</html>
+  
